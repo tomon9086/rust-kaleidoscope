@@ -7,6 +7,8 @@ use std::{
 type Result<T> = result::Result<T, Error>;
 type Lines = io::Lines<io::BufReader<fs::File>>;
 
+const EOF: char = '\0';
+
 #[derive(Debug, Clone)]
 struct Error {
     message: String,
@@ -86,15 +88,17 @@ fn is_alnum(c: char) -> bool {
     c.is_alphanumeric()
 }
 
-fn tokenize(chars: &mut str::Chars) -> Token {
+fn is_digit(c: char) -> bool {
+    c.is_numeric()
+}
+
+// TODO: return type を char or Token にしたい
+fn tokenize(chars: &mut str::Chars) -> i32 {
     let mut identifier_str: String; // Filled in if tok_identifier
     let num_val: f64; // Filled in if tok_number
     let mut last_char = ' ';
 
-    let mut gc = || match get_char(chars) {
-        Ok(c) => c,
-        Err(_) => '\0',
-    };
+    let mut gc = || get_char(chars).unwrap_or(EOF);
 
     // Skip any whitespace.
     while is_space(last_char) {
@@ -111,25 +115,60 @@ fn tokenize(chars: &mut str::Chars) -> Token {
         }
 
         if identifier_str == "def" {
-            return Token::TokDef;
+            return Token::TokDef as i32;
         }
         if identifier_str == "extern" {
-            return Token::TokExtern;
+            return Token::TokExtern as i32;
         }
-        println!("\"{}\"", identifier_str);
-        return Token::TokIdentifier;
+        println!("identifier: \"{}\"", identifier_str);
+        return Token::TokIdentifier as i32;
     }
 
-    Token::TokEof
+    if is_digit(last_char) || last_char == '.' {
+        // Number: [0-9.]+
+        let mut num_str = "".to_string();
+        while is_digit(last_char) || last_char == '.' {
+            num_str += &last_char.to_string();
+            last_char = gc();
+        }
+
+        num_val = match num_str.parse::<f64>() {
+            Ok(n) => n,
+            Err(e) => panic!("{}", e),
+        };
+        println!("number: {}", num_val);
+        return Token::TokNumber as i32;
+    }
+
+    if last_char == '#' {
+        // Comment until end of line.
+        while last_char != EOF && last_char != '\n' && last_char != '\r' {
+            last_char = gc();
+        }
+
+        if last_char != EOF {
+            // ここに入ることある？
+            return tokenize(chars);
+        }
+    }
+
+    // Check for end of file.  Don't eat the EOF.
+    if last_char == EOF {
+        return Token::TokEof as i32;
+    }
+
+    // Otherwise, just return the character as its ascii value.
+    let this_char = last_char;
+    gc();
+
+    println!("token: \"{}\"", this_char);
+    this_char.to_digit(10).unwrap_or_default() as i32
 }
 
 fn main() {
     let options = match read_options() {
         Ok(options) => options,
-        Err(err) => {
-            eprintln!("invalid options: {}", err);
-            panic!();
-        }
+        Err(err) => panic!("invalid options: {}", err),
     };
     let filepath = options.filepath;
 
@@ -144,7 +183,7 @@ fn main() {
 
             while !chars.as_str().is_empty() {
                 let token = tokenize(&mut chars);
-                println!("{:?}", token);
+                // println!("{:?}", token);
             }
         }
     }
