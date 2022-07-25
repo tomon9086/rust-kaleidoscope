@@ -1,10 +1,12 @@
 use crate::{Error, Result};
 use std::str;
 
+pub type Lexeme = i32;
+
 const EOF: char = '\0';
 
 #[derive(Debug)]
-enum Token {
+pub enum Token {
     TokEof = -1,
 
     // commands
@@ -49,7 +51,7 @@ fn is_digit(c: char) -> bool {
 }
 
 // TODO: return type を char or Token にしたい
-pub fn tokenize(chars: &mut str::Chars) -> i32 {
+pub fn tokenize(chars: &mut str::Chars) -> Lexeme {
     let mut identifier_str: String; // Filled in if tok_identifier
     let num_val: f64; // Filled in if tok_number
     let mut last_char;
@@ -72,7 +74,7 @@ pub fn tokenize(chars: &mut str::Chars) -> i32 {
             identifier_str += &last_char.to_string();
         }
 
-        println!("identifier: \"{}\"", identifier_str);
+        // println!("identifier: \"{}\"", identifier_str);
         if identifier_str == "def" {
             return Token::TokDef as i32;
         }
@@ -95,7 +97,7 @@ pub fn tokenize(chars: &mut str::Chars) -> i32 {
             Ok(n) => n,
             Err(e) => panic!("{}", e),
         };
-        println!("number: {}", num_val);
+        // println!("number: {}", num_val);
         return Token::TokNumber as i32;
     }
 
@@ -121,6 +123,6 @@ pub fn tokenize(chars: &mut str::Chars) -> i32 {
     let this_char = peeked_char;
     get_char(chars).unwrap_or(EOF);
 
-    println!("token: \"{}\"", this_char);
-    this_char.to_digit(10).unwrap_or_default() as i32
+    // println!("token: \"{}\"", this_char);
+    this_char as i32
 }
