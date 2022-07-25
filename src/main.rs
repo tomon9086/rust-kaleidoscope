@@ -5,7 +5,7 @@ mod lexer;
 
 use error::Error;
 use io::{read_file_by_lines, read_options};
-use lexer::{tokenize, Lexeme, Token};
+use lexer::{tokenize, Token};
 use std::result;
 
 type Result<T> = result::Result<T, Error>;
@@ -27,16 +27,25 @@ fn main() {
             let mut chars = line.chars();
 
             while !chars.as_str().is_empty() {
-                let curr_token: Lexeme = tokenize(&mut chars);
+                let curr_token = tokenize(&mut chars);
 
-                if curr_token < 0 || 255 < curr_token {
-                    println!("token: {}", curr_token);
-                } else {
-                    println!("token: {}", curr_token as u8 as char);
-                }
-
-                if curr_token == Token::TokNumber as Lexeme {
-                    println!("^ Number detected!");
+                match curr_token {
+                    Token::TokEof => {}
+                    Token::TokUnsupported(ch) => {
+                        println!("unsupported: {}", ch);
+                    }
+                    Token::TokDef => {
+                        println!("def");
+                    }
+                    Token::TokExtern => {
+                        println!("extern");
+                    }
+                    Token::TokIdentifier(identifier) => {
+                        println!("identifier: {}", identifier);
+                    }
+                    Token::TokNumber(n) => {
+                        println!("number: {}", n);
+                    }
                 }
             }
         }

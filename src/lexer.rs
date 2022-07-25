@@ -1,20 +1,19 @@
 use crate::{Error, Result};
 use std::str;
 
-pub type Lexeme = i32;
-
 const EOF: char = '\0';
 
 #[derive(Debug)]
 pub enum Token {
-    TokEof = -1,
+    TokEof,
+    TokUnsupported(char),
 
     // commands
-    TokDef = -2,
-    TokExtern = -3,
+    TokDef,
+    TokExtern,
     // primary
-    TokIdentifier = -4,
-    TokNumber = -5,
+    TokIdentifier(String),
+    TokNumber(f64),
 }
 
 fn get_char(chars: &mut str::Chars) -> Result<char> {
@@ -50,10 +49,8 @@ fn is_digit(c: char) -> bool {
     c.is_numeric()
 }
 
-// TODO: return type を char or Token にしたい
-pub fn tokenize(chars: &mut str::Chars) -> Lexeme {
+pub fn tokenize(chars: &mut str::Chars) -> Token {
     let mut identifier_str: String; // Filled in if tok_identifier
-    let num_val: f64; // Filled in if tok_number
     let mut last_char;
     let mut peeked_char = peek_char(chars);
 
@@ -74,14 +71,13 @@ pub fn tokenize(chars: &mut str::Chars) -> Lexeme {
             identifier_str += &last_char.to_string();
         }
 
-        // println!("identifier: \"{}\"", identifier_str);
         if identifier_str == "def" {
-            return Token::TokDef as i32;
+            return Token::TokDef;
         }
         if identifier_str == "extern" {
-            return Token::TokExtern as i32;
+            return Token::TokExtern;
         }
-        return Token::TokIdentifier as i32;
+        return Token::TokIdentifier(identifier_str);
     }
 
     if is_digit(peeked_char) || peeked_char == '.' {
@@ -93,12 +89,10 @@ pub fn tokenize(chars: &mut str::Chars) -> Lexeme {
             num_str += &last_char.to_string();
         }
 
-        num_val = match num_str.parse::<f64>() {
-            Ok(n) => n,
+        return match num_str.parse::<f64>() {
+            Ok(n) => Token::TokNumber(n),
             Err(e) => panic!("{}", e),
         };
-        // println!("number: {}", num_val);
-        return Token::TokNumber as i32;
     }
 
     if peeked_char == '#' {
@@ -116,13 +110,12 @@ pub fn tokenize(chars: &mut str::Chars) -> Lexeme {
 
     // Check for end of file.  Don't eat the EOF.
     if peeked_char == EOF {
-        return Token::TokEof as i32;
+        return Token::TokEof;
     }
 
     // Otherwise, just return the character as its ascii value.
     let this_char = peeked_char;
     get_char(chars).unwrap_or(EOF);
 
-    // println!("token: \"{}\"", this_char);
-    this_char as i32
+    Token::TokUnsupported(this_char)
 }
