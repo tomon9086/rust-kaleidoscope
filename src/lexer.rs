@@ -1,4 +1,4 @@
-use crate::{Error, Result};
+use crate::{io::Chars, Error, Result};
 use std::str;
 
 const EOF: char = '\0';
@@ -14,9 +14,11 @@ pub enum Token {
     // primary
     TokIdentifier(String),
     TokNumber(f64),
+
+    TokParen,
 }
 
-fn get_char(chars: &mut str::Chars) -> Result<char> {
+fn get_char(chars: &mut Chars) -> Result<char> {
     let c = chars.next();
     match c {
         Some(c) => Ok(c),
@@ -24,9 +26,8 @@ fn get_char(chars: &mut str::Chars) -> Result<char> {
     }
 }
 
-fn peek_char(chars: &str::Chars) -> char {
-    let mut peekable = chars.clone().peekable();
-    let c = peekable.peek();
+fn peek_char(chars: &Chars) -> char {
+    let c = chars.peek();
     match c {
         Some(c) => *c,
         None => EOF,
@@ -49,7 +50,7 @@ fn is_digit(c: char) -> bool {
     c.is_numeric()
 }
 
-pub fn tokenize(chars: &mut str::Chars) -> Token {
+pub fn tokenize(chars: &mut Chars) -> Token {
     let mut identifier_str: String; // Filled in if tok_identifier
     let mut last_char;
     let mut peeked_char = peek_char(chars);
