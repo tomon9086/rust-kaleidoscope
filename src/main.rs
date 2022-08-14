@@ -1,10 +1,11 @@
 mod ast;
+mod chars;
 mod error;
 mod io;
 mod lexer;
 
 use error::Error;
-use io::{read_file_by_lines, read_options};
+use io::{read_file_by_chars, read_options};
 use lexer::{tokenize, Token};
 use std::result;
 
@@ -17,35 +18,26 @@ fn main() {
     };
     let filepath = options.filepath;
 
-    if let Ok(lines) = read_file_by_lines(filepath) {
-        for l in lines {
-            // let mut chars = line.expect("lines failed").chars();
-            let line = match l {
-                Ok(line) => line,
-                Err(_) => String::new(),
-            };
-            let mut chars = line.chars();
+    if let Ok(mut chars) = read_file_by_chars(filepath) {
+        while !chars.is_empty() {
+            let curr_token = tokenize(&mut chars);
 
-            while !chars.as_str().is_empty() {
-                let curr_token = tokenize(&mut chars);
-
-                match curr_token {
-                    Token::TokEof => {}
-                    Token::TokUnsupported(ch) => {
-                        println!("unsupported: {}", ch);
-                    }
-                    Token::TokDef => {
-                        println!("def");
-                    }
-                    Token::TokExtern => {
-                        println!("extern");
-                    }
-                    Token::TokIdentifier(identifier) => {
-                        println!("identifier: {}", identifier);
-                    }
-                    Token::TokNumber(n) => {
-                        println!("number: {}", n);
-                    }
+            match curr_token {
+                Token::TokEof => {}
+                Token::TokUnsupported(ch) => {
+                    println!("unsupported: {}", ch);
+                }
+                Token::TokDef => {
+                    println!("def");
+                }
+                Token::TokExtern => {
+                    println!("extern");
+                }
+                Token::TokIdentifier(identifier) => {
+                    println!("identifier: {}", identifier);
+                }
+                Token::TokNumber(n) => {
+                    println!("number: {}", n);
                 }
             }
         }

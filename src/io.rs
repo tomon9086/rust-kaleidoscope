@@ -1,4 +1,4 @@
-use crate::{Error, Result};
+use crate::{chars::Chars, Error, Result};
 use std::{
     env, fs,
     io::{self, BufRead},
@@ -21,10 +21,23 @@ pub fn read_options() -> Result<CmdOption> {
     Ok(CmdOption { filepath: filepath })
 }
 
-pub fn read_file_by_lines<P>(path: P) -> io::Result<Lines>
+fn read_file_by_lines<P>(path: P) -> io::Result<Lines>
 where
     P: AsRef<path::Path>,
 {
     let file = fs::File::open(path)?;
     Ok(io::BufReader::new(file).lines())
+}
+
+pub fn read_file_by_chars<P>(path: P) -> io::Result<Chars>
+where
+    P: AsRef<path::Path>,
+{
+    read_file_by_lines(path).and_then(|lines| {
+        Ok(Chars::new(
+            lines
+                .map(|l| l.unwrap_or(String::new()).chars().collect::<Vec<char>>())
+                .collect::<Vec<Vec<char>>>(),
+        ))
+    })
 }
