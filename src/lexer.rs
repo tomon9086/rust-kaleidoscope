@@ -49,7 +49,6 @@ fn is_digit(c: char) -> bool {
 
 pub fn tokenize(chars: &mut Chars) -> Token {
     let mut identifier_str: String; // Filled in if tok_identifier
-    let mut last_char;
     let mut peeked_char = peek_char(chars);
 
     // Skip any whitespace.
@@ -59,14 +58,14 @@ pub fn tokenize(chars: &mut Chars) -> Token {
     }
 
     if is_alpha(peeked_char) {
-        last_char = get_char(chars).unwrap_or(EOF);
         peeked_char = peek_char(chars);
-        identifier_str = last_char.to_string();
+        identifier_str = "".to_string();
 
         while is_alnum(peeked_char) {
-            last_char = get_char(chars).unwrap_or(EOF);
+            identifier_str += &peeked_char.to_string();
+
+            get_char(chars).unwrap_or(EOF);
             peeked_char = peek_char(chars);
-            identifier_str += &last_char.to_string();
         }
 
         if identifier_str == "def" {
@@ -81,10 +80,12 @@ pub fn tokenize(chars: &mut Chars) -> Token {
     if is_digit(peeked_char) || peeked_char == '.' {
         // Number: [0-9.]+
         let mut num_str = "".to_string();
+
         while is_digit(peeked_char) || peeked_char == '.' {
-            last_char = get_char(chars).unwrap_or(EOF);
+            num_str += &peeked_char.to_string();
+
+            get_char(chars).unwrap_or(EOF);
             peeked_char = peek_char(chars);
-            num_str += &last_char.to_string();
         }
 
         return match num_str.parse::<f64>() {
@@ -101,7 +102,6 @@ pub fn tokenize(chars: &mut Chars) -> Token {
         }
 
         if peeked_char != EOF {
-            // ここに入ることある？
             return tokenize(chars);
         }
     }

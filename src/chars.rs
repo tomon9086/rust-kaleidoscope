@@ -15,7 +15,7 @@ impl Iterator for Chars {
             self.offset += 1;
         }
 
-        if self.lines.len() != 0 {
+        if self.lines.len() != 0 && self.lines.len() > self.offset {
             Some(self.lines[self.offset])
         } else {
             None
