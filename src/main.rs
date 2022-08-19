@@ -24,7 +24,7 @@ fn main() {
         while !chars.is_empty() {
             let curr_token = tokenize(&mut chars);
 
-            parse_expr(&mut chars, curr_token);
+            parse_expr(&mut chars, &curr_token);
         }
     }
 }

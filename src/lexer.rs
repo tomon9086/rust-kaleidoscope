@@ -14,6 +14,7 @@ pub enum Token {
     TokIdentifier(String),
     TokNumber(f64),
     TokParenStart,
+    TokParenEnd,
 }
 
 fn get_char(chars: &mut Chars) -> Result<char> {
@@ -118,6 +119,9 @@ pub fn tokenize(chars: &mut Chars) -> Token {
 
     if this_char == '(' {
         return Token::TokParenStart;
+    }
+    if this_char == ')' {
+        return Token::TokParenEnd;
     }
 
     Token::TokUnsupported(this_char)
