@@ -2,7 +2,7 @@ use crate::{chars::Chars, Error, Result};
 
 const EOF: char = '\0';
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token {
     TokEof,
     TokUnsupported(char),
@@ -13,6 +13,7 @@ pub enum Token {
     // primary
     TokIdentifier(String),
     TokNumber(f64),
+    TokParenStart,
 }
 
 fn get_char(chars: &mut Chars) -> Result<char> {
@@ -114,6 +115,10 @@ pub fn tokenize(chars: &mut Chars) -> Token {
     // Otherwise, just return the character as its ascii value.
     let this_char = peeked_char;
     get_char(chars).unwrap_or(EOF);
+
+    if this_char == '(' {
+        return Token::TokParenStart;
+    }
 
     Token::TokUnsupported(this_char)
 }

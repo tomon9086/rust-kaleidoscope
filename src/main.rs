@@ -3,10 +3,12 @@ mod chars;
 mod error;
 mod io;
 mod lexer;
+mod parser;
 
 use error::Error;
 use io::{read_file_by_chars, read_options};
-use lexer::{tokenize, Token};
+use lexer::tokenize;
+use parser::parse_expr;
 use std::result;
 
 type Result<T> = result::Result<T, Error>;
@@ -22,24 +24,7 @@ fn main() {
         while !chars.is_empty() {
             let curr_token = tokenize(&mut chars);
 
-            match curr_token {
-                Token::TokEof => {}
-                Token::TokUnsupported(ch) => {
-                    println!("unsupported: {}", ch);
-                }
-                Token::TokDef => {
-                    println!("def");
-                }
-                Token::TokExtern => {
-                    println!("extern");
-                }
-                Token::TokIdentifier(identifier) => {
-                    println!("identifier: {}", identifier);
-                }
-                Token::TokNumber(n) => {
-                    println!("number: {}", n);
-                }
-            }
+            parse_expr(&mut chars, curr_token);
         }
     }
 }
